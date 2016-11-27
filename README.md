@@ -42,3 +42,21 @@ One last thing, set the R.id.zoomable tag to the Views that you would like to be
 ```java
 findViewById(R.id.imgLogo).setTag(R.id.zoomable, new Object());
 ```
+### Smoother Experience
+For a smoother zoom transition, set the layout to be fullscreen. This only works on API 16 and above.
+
+Place this code in the OnCreate function of your Activity. Preferably before the setContentView line.
+```java
+if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+    View decorView = getWindow().getDecorView();
+    // Hide the status bar.
+    int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+    decorView.setSystemUiVisibility(uiOptions);
+}
+```
+
+The above code makes your Activity layout go behind the status bar which brings the status bar on top of the layout. To fix that, put this line in your root layout XML.
+```xml
+android:fitsSystemWindows="true"
+```
