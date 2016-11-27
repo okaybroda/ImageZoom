@@ -1,8 +1,8 @@
 # ImageZoom
 An Android library that makes any view to be zoomable.
-![View Preview](https://github.com/okaybroda/ImageZoom/blob/master/preview.gif?raw=true)
-
 It was created to mimick the Instagram Zoom feature.
+
+![View Preview](https://github.com/okaybroda/ImageZoom/blob/master/preview.gif?raw=true)
 
 ## Installation
 Add Jitpack
