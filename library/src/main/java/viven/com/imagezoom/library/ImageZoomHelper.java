@@ -23,7 +23,7 @@ import java.lang.ref.WeakReference;
  * Created by viventhraarao on 25/11/2016.
  */
 
-public class ImageZoomManager {
+public class ImageZoomHelper {
     private View zoomableView = null;
     private Dialog dialog;
     private ImageView imageView;
@@ -36,7 +36,7 @@ public class ImageZoomManager {
 
     private boolean isAnimatingDismiss = false;
 
-    public ImageZoomManager(Activity activity) {
+    public ImageZoomHelper(Activity activity) {
         this.activityWeakReference = new WeakReference<>(activity);
     }
 
