@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
         imageZoomHelper = new ImageZoomHelper(this);
 
+        // set zoomable tag on views that is to be zoomed
         findViewById(R.id.imgLogo).setTag(R.id.zoomable, new Object());
     }
 
