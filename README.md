@@ -44,7 +44,7 @@ ImageZoomHelper.setViewZoomable(findViewById(R.id.imgLogo));
 ```
 To enable/disable zoom for certain Views (e.g. Recycler View refreshing)
 ```java
-ImageZoomHelper.setZoom(view, false)
+ImageZoomHelper.setZoom(recyclerView, false)
 ```
 ### Advanced Usage
 For a smoother zoom transition, set the layout to be fullscreen. This only works on API 16 and above.
