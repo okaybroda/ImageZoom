@@ -38,9 +38,13 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
     return imageZoomHelper.onDispatchTouchEvent(ev) || super.dispatchTouchEvent(ev);
 }
 ```
-One last thing, set the R.id.zoomable tag to the Views that you would like to be zoomable.
+Set the R.id.zoomable tag to the Views that you would like to be zoomable.
 ```java
 ImageZoomHelper.setViewZoomable(findViewById(R.id.imgLogo));
+```
+To enable/disable zoom for certain Views (e.g. Recycler View refreshing)
+```java
+ImageZoomHelper.setZoom(view, false)
 ```
 ### Advanced Usage
 For a smoother zoom transition, set the layout to be fullscreen. This only works on API 16 and above.
