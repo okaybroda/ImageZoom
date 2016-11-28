@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
@@ -63,7 +64,10 @@ public class ImageZoomHelper {
                     imageView = new ImageView(view.getContext());
                     view.setDrawingCacheEnabled(true);
                     view.buildDrawingCache();
-                    imageView.setImageBitmap(view.getDrawingCache());
+                    Bitmap drawingCache = view.getDrawingCache();
+                    imageView.setImageBitmap(drawingCache.copy(drawingCache.getConfig(), true));
+                    view.destroyDrawingCache();
+
                     FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
                             view.getWidth(), view.getHeight());
                     frameLayout.addView(imageView, layoutParams);
