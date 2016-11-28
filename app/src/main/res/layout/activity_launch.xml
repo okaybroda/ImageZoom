@@ -10,4 +10,22 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.viven.imagezoom.sample.LaunchActivity">
 
+    <Button
+        android:text="Basic zoom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/btnBasic" />
+
+    <Button
+        android:text="Recycler View zoom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnBasic"
+        android:layout_alignLeft="@+id/btnBasic"
+        android:layout_alignStart="@+id/btnBasic"
+        android:layout_marginTop="8dp"
+        android:id="@+id/btnRecycler" />
+
 </RelativeLayout>
