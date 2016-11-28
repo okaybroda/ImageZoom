@@ -238,4 +238,8 @@ public class ImageZoomHelper {
 
         return null;
     }
+
+    public static void setViewZoomable(View view) {
+        view.setTag(R.id.zoomable, new Object());
+    }
 }
