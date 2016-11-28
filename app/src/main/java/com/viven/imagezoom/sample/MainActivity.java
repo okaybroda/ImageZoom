@@ -1,11 +1,11 @@
-package viven.com.imagezoom;
+package com.viven.imagezoom.sample;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 
-import viven.com.imagezoom.library.ImageZoomHelper;
+import com.viven.imagezoom.ImageZoomHelper;
 
 public class MainActivity extends AppCompatActivity {
 

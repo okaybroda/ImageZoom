@@ -1,4 +1,4 @@
-package viven.com.imagezoom.library;
+package com.viven.imagezoom;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;

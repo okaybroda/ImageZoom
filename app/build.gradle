@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.1"
     defaultConfig {
-        applicationId "viven.com.imagezoom"
+        applicationId "com.viven.imagezoom.sample"
         minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
