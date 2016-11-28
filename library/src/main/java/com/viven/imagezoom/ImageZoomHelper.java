@@ -234,20 +234,23 @@ public class ImageZoomHelper {
 
             for (int i = 0; i < childCount; i++) {
                 View child = viewGroup.getChildAt(i);
-                Rect visibleRect = new Rect();
-                int location[] = new int[2];
-                child.getLocationOnScreen(location);
-                visibleRect.left = location[0];
-                visibleRect.top = location[1];
-                visibleRect.right = visibleRect.left + child.getWidth();
-                visibleRect.bottom = visibleRect.top + child.getHeight();
 
-                if (visibleRect.contains((int) pointerCoords1.x, (int) pointerCoords1.y) &&
-                        visibleRect.contains((int) pointerCoords2.x, (int) pointerCoords2.y)) {
-                    if (child.getTag(R.id.zoomable) != null)
-                        return child;
-                    else
-                        return findZoomableView(event, child);
+                if (child.getTag(R.id.unzoomable) == null) {
+                    Rect visibleRect = new Rect();
+                    int location[] = new int[2];
+                    child.getLocationOnScreen(location);
+                    visibleRect.left = location[0];
+                    visibleRect.top = location[1];
+                    visibleRect.right = visibleRect.left + child.getWidth();
+                    visibleRect.bottom = visibleRect.top + child.getHeight();
+
+                    if (visibleRect.contains((int) pointerCoords1.x, (int) pointerCoords1.y) &&
+                            visibleRect.contains((int) pointerCoords2.x, (int) pointerCoords2.y)) {
+                        if (child.getTag(R.id.zoomable) != null)
+                            return child;
+                        else
+                            return findZoomableView(event, child);
+                    }
                 }
             }
         }
@@ -255,7 +258,22 @@ public class ImageZoomHelper {
         return null;
     }
 
+    /**
+     * Set view to be zoomable
+     *
+     * @param view
+     */
     public static void setViewZoomable(View view) {
         view.setTag(R.id.zoomable, new Object());
+    }
+
+    /**
+     * Enable or disable zoom for view and it's children
+     *
+     * @param view
+     * @param enabled
+     */
+    public static void setZoom(View view, boolean enabled) {
+        view.setTag(R.id.unzoomable, enabled ? null : new Object());
     }
 }
