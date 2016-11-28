@@ -174,19 +174,26 @@ public class ImageZoomHelper {
             zoomableView.post(new Runnable() {
                 @Override
                 public void run() {
-                    if (dialog != null) {
-                        dialog.dismiss();
-                        dialog = null;
-                    }
-
-                    zoomableView = null;
-                    imageView = null;
-                    darkView = null;
+                    dismissDialog();
                 }
             });
             zoomableView = null;
-            isAnimatingDismiss = false;
+        } else {
+            dismissDialog();
         }
+
+        isAnimatingDismiss = false;
+    }
+
+    private void dismissDialog() {
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
+        }
+
+        zoomableView = null;
+        imageView = null;
+        darkView = null;
     }
 
     /**
@@ -224,7 +231,12 @@ public class ImageZoomHelper {
             for (int i = 0; i < childCount; i++) {
                 View child = viewGroup.getChildAt(i);
                 Rect visibleRect = new Rect();
-                child.getGlobalVisibleRect(visibleRect);
+                int location[] = new int[2];
+                child.getLocationOnScreen(location);
+                visibleRect.left = location[0];
+                visibleRect.top = location[1];
+                visibleRect.right = visibleRect.left + child.getWidth();
+                visibleRect.bottom = visibleRect.top + child.getHeight();
 
                 if (visibleRect.contains((int) pointerCoords1.x, (int) pointerCoords1.y) &&
                         visibleRect.contains((int) pointerCoords2.x, (int) pointerCoords2.y)) {
