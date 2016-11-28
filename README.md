@@ -40,9 +40,9 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 ```
 One last thing, set the R.id.zoomable tag to the Views that you would like to be zoomable.
 ```java
-findViewById(R.id.imgLogo).setTag(R.id.zoomable, new Object());
+ImageZoomHelper.setViewZoomable(findViewById(R.id.imgLogo));
 ```
-### Smoother Experience
+### Advanced Usage
 For a smoother zoom transition, set the layout to be fullscreen. This only works on API 16 and above.
 
 Place this code in the OnCreate function of your Activity. Preferably before the setContentView line.
