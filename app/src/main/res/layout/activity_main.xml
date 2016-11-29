@@ -9,7 +9,13 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:fitsSystemWindows="true"
-    tools:context="viven.com.imagezoom.com.viven.imagezoom.MainActivity">
+    tools:context="com.viven.imagezoom.sample.MainActivity">
+
+    <Button
+        android:text="Dialog"
+        android:id="@+id/btnDialog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <ImageView
         android:id="@+id/imgLogo"
