@@ -64,3 +64,20 @@ The above code makes your Activity layout go behind the status bar which brings 
 ```xml
 android:fitsSystemWindows="true"
 ```
+## Known Issues
+### RecyclerView
+When using RecyclerView and setting it's child to be zoomable, RecyclerView crashes.
+```java
+ImageView imageView = new ImageView(RecyclerViewActivity.this);
+imageView.setImageResource(R.mipmap.ic_launcher);
+ImageZoomHelper.setViewZoomable(imageView);
+return new RecyclerView.ViewHolder(frameLayout) {};
+```
+
+Workaround is to wrap the zoomable View with a parent ViewGroup.
+```java
+// Wrap ImageView with FrameLayout to avoid RecyclerView issue
+FrameLayout frameLayout = new FrameLayout(parent.getContext());
+frameLayout.addView(imageView);
+return new RecyclerView.ViewHolder(frameLayout) {};
+```
