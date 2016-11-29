@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.viven.imagezoom.ImageZoomHelper;
 
 public class RecyclerViewActivity extends AppCompatActivity {
@@ -47,6 +48,11 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 ImageZoomHelper.setViewZoomable(imageView);
                 imageView.setMinimumHeight(400);
                 frameLayout.addView(imageView);
+                Glide.with(RecyclerViewActivity.this)
+                        .load("https://raw.githubusercontent.com/okaybroda/ImageZoom/master/preview.gif")
+                        .asGif()
+                        .centerCrop()
+                        .into(imageView);
                 return new RecyclerView.ViewHolder(frameLayout) {};
             }
 
