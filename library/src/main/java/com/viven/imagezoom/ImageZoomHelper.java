@@ -1,22 +1,14 @@
 package com.viven.imagezoom;
 
-import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.os.Build;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.PopupWindow;
 
 import java.lang.ref.WeakReference;
 
@@ -26,8 +18,12 @@ import java.lang.ref.WeakReference;
 
 public class ImageZoomHelper {
     private View zoomableView = null;
+    private ViewGroup parentOfZoomableView;
+    private ViewGroup.LayoutParams zoomableViewLP;
+    private FrameLayout.LayoutParams zoomableViewFrameLP;
     private Dialog dialog;
-    private ImageView imageView;
+    private View placeholderView;
+    private int viewIndex;
     private View darkView;
     private double originalDistance;
     private int[] twoPointCenter;
@@ -53,6 +49,9 @@ public class ImageZoomHelper {
                 if (view != null) {
                     zoomableView = view;
 
+                    originalXY = new int[2];
+                    view.getLocationInWindow(originalXY);
+
                     FrameLayout frameLayout = new FrameLayout(view.getContext());
                     darkView = new View(view.getContext());
                     darkView.setBackgroundColor(Color.BLACK);
@@ -61,31 +60,19 @@ public class ImageZoomHelper {
                             FrameLayout.LayoutParams.MATCH_PARENT,
                             FrameLayout.LayoutParams.MATCH_PARENT));
 
-                    imageView = new ImageView(view.getContext());
-                    view.setDrawingCacheEnabled(true);
-                    view.buildDrawingCache();
-                    Bitmap drawingCache = view.getDrawingCache();
-                    imageView.setImageBitmap(drawingCache.copy(drawingCache.getConfig(), true));
-                    view.destroyDrawingCache();
+                    parentOfZoomableView = (ViewGroup) zoomableView.getParent();
+                    viewIndex = parentOfZoomableView.indexOfChild(zoomableView);
+                    this.zoomableViewLP = zoomableView.getLayoutParams();
+                    parentOfZoomableView.removeView(zoomableView);
 
-                    FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                    placeholderView = new View(activity);
+                    parentOfZoomableView.addView(placeholderView, zoomableViewLP.width, zoomableViewLP.height);
+
+                    zoomableViewFrameLP = new FrameLayout.LayoutParams(
                             view.getWidth(), view.getHeight());
-                    frameLayout.addView(imageView, layoutParams);
-
-                    originalXY = new int[2];
-                    view.getLocationInWindow(originalXY);
-
-                    imageView.setX(originalXY[0]);
-                    imageView.setY(originalXY[1]);
-
-                    imageView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                        @Override
-                        public void onLayoutChange(View view, int i, int i1, int i2, int i3,
-                                                   int i4, int i5, int i6, int i7) {
-                            zoomableView.setVisibility(View.INVISIBLE);
-                            imageView.removeOnLayoutChangeListener(this);
-                        }
-                    });
+                    zoomableViewFrameLP.leftMargin = originalXY[0];
+                    zoomableViewFrameLP.topMargin = originalXY[1];
+                    frameLayout.addView(zoomableView, zoomableViewFrameLP);
 
                     dialog = new Dialog(activity,
                             android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
@@ -125,11 +112,11 @@ public class ImageZoomHelper {
                         pointerCoords1.y, pointerCoords2.y);
                 double pctIncrease = (currentDistance - originalDistance) / originalDistance;
 
-                imageView.setScaleX((float) (1 + pctIncrease));
-                imageView.setScaleY((float) (1 + pctIncrease));
+                zoomableView.setScaleX((float) (1 + pctIncrease));
+                zoomableView.setScaleY((float) (1 + pctIncrease));
 
-                imageView.setX(newCenter[0] - twoPointCenter[0] + originalXY[0]);//+ originalXY[0]);
-                imageView.setY(newCenter[1] - twoPointCenter[1] + originalXY[1]);//+ originalXY[1]);
+                updateZoomableViewMargins(newCenter[0] - twoPointCenter[0] + originalXY[0],
+                        newCenter[1] - twoPointCenter[1] + originalXY[1]);
 
                 darkView.setAlpha((float) (pctIncrease / 8));
 
@@ -138,29 +125,45 @@ public class ImageZoomHelper {
         } else {
             if (zoomableView != null && !isAnimatingDismiss) {
                 isAnimatingDismiss = true;
-                imageView.animate().scaleY(1).scaleX(1).x(originalXY[0]).y(originalXY[1])
-                        .setListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animator) {
+                ValueAnimator valueAnimator = ValueAnimator.ofFloat(0f, 1f);
+                valueAnimator.setDuration(activity.getResources()
+                        .getInteger(android.R.integer.config_shortAnimTime));
+                valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    float scaleYStart = zoomableView.getScaleY();
+                    float scaleXStart = zoomableView.getScaleX();
+                    int leftMarginStart = zoomableViewFrameLP.leftMargin;
+                    int topMarginStart = zoomableViewFrameLP.topMargin;
+                    float alphaStart = darkView.getAlpha();
 
-                            }
+                    float scaleYEnd = 1f;
+                    float scaleXEnd = 1f;
+                    int leftMarginEnd = originalXY[0];
+                    int topMarginEnd = originalXY[1];
+                    float alphaEnd = 0f;
+                    
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        float animatedFraction = valueAnimator.getAnimatedFraction();
+                        if (animatedFraction < 1) {
+                            zoomableView.setScaleX(((scaleXEnd - scaleXStart) * animatedFraction) +
+                                    scaleXStart);
+                            zoomableView.setScaleY(((scaleYEnd - scaleYStart) * animatedFraction) +
+                                    scaleYStart);
 
-                            @Override
-                            public void onAnimationEnd(Animator animator) {
-                                dismissDialogAndViews();
-                            }
+                            updateZoomableViewMargins(
+                                    ((leftMarginEnd - leftMarginStart) * animatedFraction) +
+                                            leftMarginStart,
+                                    ((topMarginEnd - topMarginStart) * animatedFraction) +
+                                            topMarginStart);
 
-                            @Override
-                            public void onAnimationCancel(Animator animator) {
-                                dismissDialogAndViews();
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animator animator) {
-
-                            }
-                        }).start();
-                darkView.animate().alpha(0).start();
+                            darkView.setAlpha(((alphaEnd - alphaStart) * animatedFraction) +
+                                    alphaStart);
+                        } else {
+                            dismissDialogAndViews();
+                        }
+                    }
+                });
+                valueAnimator.start();
 
                 return true;
             }
@@ -169,18 +172,33 @@ public class ImageZoomHelper {
         return false;
     }
 
+    void updateZoomableViewMargins(float left, float top) {
+        if (zoomableView != null && zoomableViewFrameLP != null) {
+            zoomableViewFrameLP.leftMargin = (int) left;
+            zoomableViewFrameLP.topMargin = (int) top;
+            zoomableView.setLayoutParams(zoomableViewFrameLP);
+        }
+    }
+
     /**
      * Dismiss dialog and set views to null for garbage collection
      */
     private void dismissDialogAndViews() {
         if (zoomableView != null) {
             zoomableView.setVisibility(View.VISIBLE);
+
+            ViewGroup parent = (ViewGroup) zoomableView.getParent();
+            parent.removeView(zoomableView);
+            this.parentOfZoomableView.addView(zoomableView, viewIndex, zoomableViewLP);
+            this.parentOfZoomableView.removeView(placeholderView);
+
             zoomableView.post(new Runnable() {
                 @Override
                 public void run() {
                     dismissDialog();
                 }
             });
+
             zoomableView = null;
         } else {
             dismissDialog();
@@ -196,7 +214,6 @@ public class ImageZoomHelper {
         }
 
         zoomableView = null;
-        imageView = null;
         darkView = null;
     }
 
