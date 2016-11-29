@@ -17,7 +17,7 @@ allprojects {
 Then add VRCategoryView
 ```gradle
 dependencies {
-  compile 'com.github.okaybroda:ImageZoom:1.0.1'
+  compile 'com.github.okaybroda:ImageZoom:1.0.4'
 }
 ```
 ## Usage
