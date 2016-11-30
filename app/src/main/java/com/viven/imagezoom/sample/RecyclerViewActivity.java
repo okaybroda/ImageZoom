@@ -49,7 +49,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 imageView.setMinimumHeight(400);
                 frameLayout.addView(imageView);
                 Glide.with(RecyclerViewActivity.this)
-                        .load("https://raw.githubusercontent.com/okaybroda/ImageZoom/master/preview.gif")
+                        .load("https://media.giphy.com/media/3oz8xRF0v9WMAUVLNK/giphy.gif")
                         .asGif()
                         .centerCrop()
                         .into(imageView);
