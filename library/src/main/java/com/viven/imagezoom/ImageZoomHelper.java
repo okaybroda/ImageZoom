@@ -3,11 +3,16 @@ package com.viven.imagezoom;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.GridLayoutAnimationController;
+import android.view.animation.LayoutAnimationController;
 import android.widget.FrameLayout;
 
 import java.lang.ref.WeakReference;
@@ -49,31 +54,24 @@ public class ImageZoomHelper {
                 if (view != null) {
                     zoomableView = view;
 
+                    // get view's original location relative to the window
                     originalXY = new int[2];
                     view.getLocationInWindow(originalXY);
 
+                    // this FrameLayout will be the zoomableView's temporary parent
                     FrameLayout frameLayout = new FrameLayout(view.getContext());
+
+                    // this view is to gradually darken the backdrop as user zooms
                     darkView = new View(view.getContext());
                     darkView.setBackgroundColor(Color.BLACK);
                     darkView.setAlpha(0f);
+
+                    // adding darkening backdrop to the frameLayout
                     frameLayout.addView(darkView, new FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT,
                             FrameLayout.LayoutParams.MATCH_PARENT));
 
-                    parentOfZoomableView = (ViewGroup) zoomableView.getParent();
-                    viewIndex = parentOfZoomableView.indexOfChild(zoomableView);
-                    this.zoomableViewLP = zoomableView.getLayoutParams();
-                    parentOfZoomableView.removeView(zoomableView);
-
-                    placeholderView = new View(activity);
-                    parentOfZoomableView.addView(placeholderView, zoomableViewLP.width, zoomableViewLP.height);
-
-                    zoomableViewFrameLP = new FrameLayout.LayoutParams(
-                            view.getWidth(), view.getHeight());
-                    zoomableViewFrameLP.leftMargin = originalXY[0];
-                    zoomableViewFrameLP.topMargin = originalXY[1];
-                    frameLayout.addView(zoomableView, zoomableViewFrameLP);
-
+                    // the Dialog that will hold the FrameLayout
                     dialog = new Dialog(activity,
                             android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
                     dialog.addContentView(frameLayout,
@@ -81,14 +79,61 @@ public class ImageZoomHelper {
                                     ViewGroup.LayoutParams.MATCH_PARENT));
                     dialog.show();
 
+                    // get the parent of the zoomable view and get it's index and layout param
+                    parentOfZoomableView = (ViewGroup) zoomableView.getParent();
+                    viewIndex = parentOfZoomableView.indexOfChild(zoomableView);
+                    this.zoomableViewLP = zoomableView.getLayoutParams();
+
+                    // this is the new layout param for the zoomableView
+                    zoomableViewFrameLP = new FrameLayout.LayoutParams(
+                            view.getWidth(), view.getHeight());
+                    zoomableViewFrameLP.leftMargin = originalXY[0];
+                    zoomableViewFrameLP.topMargin = originalXY[1];
+
+                    // this view will hold the zoomableView's position temporarily
+                    placeholderView = new View(activity);
+
+                    // setting placeholderView's background to zoomableView's drawingCache
+                    // this avoids flickering when adding/removing views
+                    zoomableView.setDrawingCacheEnabled(true);
+                    placeholderView.setBackgroundDrawable(
+                            new BitmapDrawable(activity.getResources(),
+                                    Bitmap.createBitmap(zoomableView.getDrawingCache())));
+
+                    // placeholderView takes the place of zoomableView temporarily
+                    parentOfZoomableView.addView(placeholderView, zoomableViewLP.width,
+                            zoomableViewLP.height);
+
+                    // zoomableView has to be removed from parent view before being added to it's
+                    // new parent
+                    parentOfZoomableView.removeView(zoomableView);
+                    frameLayout.addView(zoomableView, zoomableViewFrameLP);
+
+                    // using a post to remove placeholder's drawing cache
+                    zoomableView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (dialog != null) {
+                                placeholderView.setBackgroundDrawable(null);
+                                zoomableView.setDrawingCacheEnabled(false);
+                            }
+                        }
+                    });
+
+                    // Pointer variables to store the original touch positions
                     MotionEvent.PointerCoords pointerCoords1 = new MotionEvent.PointerCoords();
                     ev.getPointerCoords(0, pointerCoords1);
 
                     MotionEvent.PointerCoords pointerCoords2 = new MotionEvent.PointerCoords();
                     ev.getPointerCoords(1, pointerCoords2);
 
+                    // storing distance between the two positions to be compared later on for
+                    // zooming
                     originalDistance = (int) getDistance(pointerCoords1.x, pointerCoords2.x,
                             pointerCoords1.y, pointerCoords2.y);
+
+                    // storing center point of the two pointers to move the view according to the
+                    // touch position
                     twoPointCenter = new int[] {
                             (int) ((pointerCoords2.x + pointerCoords1.x) / 2),
                             (int) ((pointerCoords2.y + pointerCoords1.y) / 2)
