@@ -8,12 +8,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.viven.imagezoom.ImageZoomHelper;
 
 public class MainActivity extends AppCompatActivity {
 
     ImageZoomHelper imageZoomHelper;
+    ImageView imgLogo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,46 +35,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        imgLogo = (ImageView) findViewById(R.id.imgLogo);
+
         imageZoomHelper = new ImageZoomHelper(this);
 
         // set zoomable tag on views that is to be zoomed
-        ImageZoomHelper.setViewZoomable(findViewById(R.id.imgLogo));
+        ImageZoomHelper.setViewZoomable(imgLogo);
 
-        findViewById(R.id.btnDialog).setOnClickListener(new View.OnClickListener() {
+        Glide.with(this)
+                .load(R.drawable.bigimage)
+                .into(imgLogo);
+
+        imageZoomHelper.addOnZoomListener(new ImageZoomHelper.OnZoomListener() {
             @Override
-            public void onClick(View view) {
-                final View image = findViewById(R.id.imgLogo);
+            public void onImageZoomStarted(final View view) {
 
-                final FrameLayout frameLayout = new FrameLayout(MainActivity.this);
+            }
 
-                int[] originalXY = new int[2];
-                image.getLocationInWindow(originalXY);
+            @Override
+            public void onImageZoomEnded(View view) {
 
-                final ViewGroup.LayoutParams layoutParams = image.getLayoutParams();
-                final ViewGroup parent = (ViewGroup) image.getParent();
-                parent.removeView(image);
-                frameLayout.addView(image);
-
-                ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) image.getLayoutParams();
-                marginLayoutParams.leftMargin = originalXY[0];
-                marginLayoutParams.topMargin = originalXY[1];
-//                image.setX(originalXY[0]);
-//                image.setY(originalXY[1]);
-
-                Dialog dialog = new Dialog(MainActivity.this,
-                        android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
-                dialog.addContentView(frameLayout,
-                        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT));
-                dialog.show();
-
-                dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialogInterface) {
-                        frameLayout.removeView(image);
-                        parent.addView(image, layoutParams);
-                    }
-                });
             }
         });
     }

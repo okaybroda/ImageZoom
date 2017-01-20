@@ -4,18 +4,18 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.GridLayoutAnimationController;
-import android.view.animation.LayoutAnimationController;
 import android.widget.FrameLayout;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by viventhraarao on 25/11/2016.
@@ -37,6 +37,8 @@ public class ImageZoomHelper {
     private WeakReference<Activity> activityWeakReference;
 
     private boolean isAnimatingDismiss = false;
+
+    private List<OnZoomListener> zoomListeners = new ArrayList<>();
 
     public ImageZoomHelper(Activity activity) {
         this.activityWeakReference = new WeakReference<>(activity);
@@ -96,9 +98,15 @@ public class ImageZoomHelper {
                     // setting placeholderView's background to zoomableView's drawingCache
                     // this avoids flickering when adding/removing views
                     zoomableView.setDrawingCacheEnabled(true);
-                    placeholderView.setBackgroundDrawable(
-                            new BitmapDrawable(activity.getResources(),
-                                    Bitmap.createBitmap(zoomableView.getDrawingCache())));
+
+                    BitmapDrawable placeholderDrawable = new BitmapDrawable(
+                            activity.getResources(),
+                            Bitmap.createBitmap(zoomableView.getDrawingCache()));
+                    if (Build.VERSION.SDK_INT >= 16) {
+                        placeholderView.setBackground(placeholderDrawable);
+                    } else {
+                        placeholderView.setBackgroundDrawable(placeholderDrawable);
+                    }
 
                     // placeholderView takes the place of zoomableView temporarily
                     parentOfZoomableView.addView(placeholderView, zoomableViewLP.width,
@@ -114,7 +122,12 @@ public class ImageZoomHelper {
                         @Override
                         public void run() {
                             if (dialog != null) {
-                                placeholderView.setBackgroundDrawable(null);
+                                if (Build.VERSION.SDK_INT >= 16) {
+                                    placeholderView.setBackground(null);
+                                } else {
+                                    placeholderView.setBackgroundDrawable(null);
+                                }
+
                                 zoomableView.setDrawingCacheEnabled(false);
                             }
                         }
@@ -139,6 +152,7 @@ public class ImageZoomHelper {
                             (int) ((pointerCoords2.y + pointerCoords1.y) / 2)
                     };
 
+                    sendZoomEventToListeners(zoomableView, true);
                     return true;
                 }
             } else {
@@ -185,7 +199,7 @@ public class ImageZoomHelper {
                     int leftMarginEnd = originalXY[0];
                     int topMarginEnd = originalXY[1];
                     float alphaEnd = 0f;
-                    
+
                     @Override
                     public void onAnimationUpdate(ValueAnimator valueAnimator) {
                         float animatedFraction = valueAnimator.getAnimatedFraction();
@@ -229,14 +243,27 @@ public class ImageZoomHelper {
      * Dismiss dialog and set views to null for garbage collection
      */
     private void dismissDialogAndViews() {
+        sendZoomEventToListeners(zoomableView, false);
+
         if (zoomableView != null) {
             zoomableView.setVisibility(View.VISIBLE);
+            zoomableView.setDrawingCacheEnabled(true);
+
+            BitmapDrawable placeholderDrawable = new BitmapDrawable(
+                    zoomableView.getResources(),
+                    Bitmap.createBitmap(zoomableView.getDrawingCache()));
+            if (Build.VERSION.SDK_INT >= 16) {
+                placeholderView.setBackground(placeholderDrawable);
+            } else {
+                placeholderView.setBackgroundDrawable(placeholderDrawable);
+            }
 
             ViewGroup parent = (ViewGroup) zoomableView.getParent();
             parent.removeView(zoomableView);
             this.parentOfZoomableView.addView(zoomableView, viewIndex, zoomableViewLP);
             this.parentOfZoomableView.removeView(placeholderView);
 
+            zoomableView.setDrawingCacheEnabled(false);
             zoomableView.post(new Runnable() {
                 @Override
                 public void run() {
@@ -250,6 +277,23 @@ public class ImageZoomHelper {
         }
 
         isAnimatingDismiss = false;
+    }
+
+    public void addOnZoomListener(OnZoomListener onZoomListener) {
+        zoomListeners.add(onZoomListener);
+    }
+
+    public void removeOnZoomListener(OnZoomListener onZoomListener) {
+        zoomListeners.remove(onZoomListener);
+    }
+
+    private void sendZoomEventToListeners(View zoomableView, boolean zoom) {
+        for (OnZoomListener onZoomListener : zoomListeners) {
+            if (zoom)
+                onZoomListener.onImageZoomStarted(zoomableView);
+            else
+                onZoomListener.onImageZoomEnded(zoomableView);
+        }
     }
 
     private void dismissDialog() {
@@ -337,5 +381,13 @@ public class ImageZoomHelper {
      */
     public static void setZoom(View view, boolean enabled) {
         view.setTag(R.id.unzoomable, enabled ? null : new Object());
+    }
+
+    public interface OnZoomListener {
+
+        void onImageZoomStarted(View view);
+
+        void onImageZoomEnded(View view);
+
     }
 }

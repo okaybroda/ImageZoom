@@ -13,6 +13,9 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.viven.imagezoom.ImageZoomHelper;
 
 public class RecyclerViewActivity extends AppCompatActivity {
@@ -21,6 +24,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
     SwipeRefreshLayout swipeRefreshLayout;
 
     ImageZoomHelper imageZoomHelper;
+    ImageZoomHelper.OnZoomListener onZoomListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +45,18 @@ public class RecyclerViewActivity extends AppCompatActivity {
         recyclerView.setAdapter(new RecyclerView.Adapter() {
             @Override
             public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                String url = "https://media.giphy.com/media/3oz8xRF0v9WMAUVLNK/giphy.gif";
+
                 // Wrap ImageView with FrameLayout to avoid RecyclerView issue
                 FrameLayout frameLayout = new FrameLayout(parent.getContext());
                 ImageView imageView = new ImageView(RecyclerViewActivity.this);
+                imageView.setTag(R.id.imageUrl, url);
                 imageView.setImageResource(R.mipmap.ic_launcher);
                 ImageZoomHelper.setViewZoomable(imageView);
                 imageView.setMinimumHeight(400);
                 frameLayout.addView(imageView);
                 Glide.with(RecyclerViewActivity.this)
-                        .load("https://media.giphy.com/media/3oz8xRF0v9WMAUVLNK/giphy.gif")
+                        .load(url)
                         .asGif()
                         .centerCrop()
                         .into(imageView);
@@ -83,10 +90,36 @@ public class RecyclerViewActivity extends AppCompatActivity {
         });
 
         imageZoomHelper = new ImageZoomHelper(this);
+
+        onZoomListener = new ImageZoomHelper.OnZoomListener() {
+            @Override
+            public void onImageZoomStarted(final View view) {
+
+            }
+
+            @Override
+            public void onImageZoomEnded(View view) {
+
+            }
+        };
     }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         return imageZoomHelper.onDispatchTouchEvent(ev) || super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        imageZoomHelper.addOnZoomListener(onZoomListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        imageZoomHelper.removeOnZoomListener(onZoomListener);
     }
 }
