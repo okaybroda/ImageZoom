@@ -109,8 +109,7 @@ public class ImageZoomHelper {
                     }
 
                     // placeholderView takes the place of zoomableView temporarily
-                    parentOfZoomableView.addView(placeholderView, zoomableViewLP.width,
-                            zoomableViewLP.height);
+                    parentOfZoomableView.addView(placeholderView, zoomableViewLP);
 
                     // zoomableView has to be removed from parent view before being added to it's
                     // new parent
