@@ -301,8 +301,13 @@ public class ImageZoomHelper {
             dialog = null;
         }
 
-        zoomableView = null;
         darkView = null;
+        resetOriginalViewAfterZoom();
+    }
+
+    private void resetOriginalViewAfterZoom() {
+        zoomableView.invalidate();
+        zoomableView = null;
     }
 
     /**
