@@ -262,11 +262,14 @@ public class ImageZoomHelper {
             this.parentOfZoomableView.addView(zoomableView, viewIndex, zoomableViewLP);
             this.parentOfZoomableView.removeView(placeholderView);
 
+            final View finalZoomView = zoomableView;
             zoomableView.setDrawingCacheEnabled(false);
             zoomableView.post(new Runnable() {
                 @Override
                 public void run() {
                     dismissDialog();
+
+                    finalZoomView.invalidate();
                 }
             });
 
@@ -302,12 +305,6 @@ public class ImageZoomHelper {
         }
 
         darkView = null;
-        resetOriginalViewAfterZoom();
-    }
-
-    private void resetOriginalViewAfterZoom() {
-        zoomableView.invalidate();
-        zoomableView = null;
     }
 
     /**
