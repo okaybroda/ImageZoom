@@ -33,7 +33,7 @@ public class ImageZoomHelper {
     private double originalDistance;
     private int[] twoPointCenter;
     private int[] originalXY;
-
+    private int pivotX=0,pivotY=0;
     private WeakReference<Activity> activityWeakReference;
 
     private boolean isAnimatingDismiss = false;
@@ -151,6 +151,10 @@ public class ImageZoomHelper {
                             (int) ((pointerCoords2.y + pointerCoords1.y) / 2)
                     };
 
+                    //storing pivot point for zooming image from its touch coordinates
+                    pivotX = (int)ev.getRawX() - originalXY[0];
+                    pivotY = (int)ev.getRawY() - originalXY[1];
+
                     sendZoomEventToListeners(zoomableView, true);
                     return true;
                 }
@@ -169,6 +173,9 @@ public class ImageZoomHelper {
                 int currentDistance = (int) getDistance(pointerCoords1.x, pointerCoords2.x,
                         pointerCoords1.y, pointerCoords2.y);
                 double pctIncrease = (currentDistance - originalDistance) / originalDistance;
+
+                zoomableView.setPivotX(pivotX);
+                zoomableView.setPivotY(pivotY);
 
                 zoomableView.setScaleX((float) (1 + pctIncrease));
                 zoomableView.setScaleY((float) (1 + pctIncrease));
@@ -270,7 +277,7 @@ public class ImageZoomHelper {
                 }
             });
 
-            zoomableView = null;
+//            zoomableView = null;
         } else {
             dismissDialog();
         }
@@ -306,8 +313,10 @@ public class ImageZoomHelper {
     }
 
     private void resetOriginalViewAfterZoom() {
-        zoomableView.invalidate();
-        zoomableView = null;
+        if(zoomableView!=null) {
+            zoomableView.invalidate();
+            zoomableView = null;
+        }
     }
 
     /**
