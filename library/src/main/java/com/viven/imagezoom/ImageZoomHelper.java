@@ -210,19 +210,23 @@ public class ImageZoomHelper {
                     public void onAnimationUpdate(ValueAnimator valueAnimator) {
                         float animatedFraction = valueAnimator.getAnimatedFraction();
                         if (animatedFraction < 1) {
-                            zoomableView.setScaleX(((scaleXEnd - scaleXStart) * animatedFraction) +
-                                    scaleXStart);
-                            zoomableView.setScaleY(((scaleYEnd - scaleYStart) * animatedFraction) +
-                                    scaleYStart);
+                            if (zoomableView != null) {
+                                zoomableView.setScaleX(((scaleXEnd - scaleXStart) *
+                                        animatedFraction) + scaleXStart);
+                                zoomableView.setScaleY(((scaleYEnd - scaleYStart) *
+                                        animatedFraction) + scaleYStart);
 
-                            updateZoomableViewMargins(
-                                    ((leftMarginEnd - leftMarginStart) * animatedFraction) +
-                                            leftMarginStart,
-                                    ((topMarginEnd - topMarginStart) * animatedFraction) +
-                                            topMarginStart);
+                                updateZoomableViewMargins(
+                                        ((leftMarginEnd - leftMarginStart) *
+                                                animatedFraction) + leftMarginStart,
+                                        ((topMarginEnd - topMarginStart) *
+                                                animatedFraction) + topMarginStart);
+                            }
 
-                            darkView.setAlpha(((alphaEnd - alphaStart) * animatedFraction) +
-                                    alphaStart);
+                            if (darkView != null) {
+                                darkView.setAlpha(((alphaEnd - alphaStart) * animatedFraction) +
+                                        alphaStart);
+                            }
                         } else {
                             dismissDialogAndViews();
                         }
