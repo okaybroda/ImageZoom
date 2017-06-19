@@ -17,7 +17,7 @@ allprojects {
 Then add ImageZoom library
 ```gradle
 dependencies {
-  compile 'com.github.okaybroda:ImageZoom:1.0.9'
+  compile 'com.github.okaybroda:ImageZoom:1.1.0'
 }
 ```
 ## Usage
