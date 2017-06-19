@@ -1,5 +1,7 @@
 package com.viven.imagezoom;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
@@ -190,46 +192,62 @@ public class ImageZoomHelper {
         } else {
             if (zoomableView != null && !isAnimatingDismiss) {
                 isAnimatingDismiss = true;
-                ValueAnimator valueAnimator = ValueAnimator.ofFloat(0f, 1f);
+
+                final float scaleYStart = zoomableView.getScaleY();
+                final float scaleXStart = zoomableView.getScaleX();
+                final int leftMarginStart = zoomableViewFrameLP.leftMargin;
+                final int topMarginStart = zoomableViewFrameLP.topMargin;
+                final float alphaStart = darkView.getAlpha();
+
+                final float scaleYEnd = 1f;
+                final float scaleXEnd = 1f;
+                final int leftMarginEnd = originalXY[0];
+                final int topMarginEnd = originalXY[1];
+                final float alphaEnd = 0f;
+
+                final ValueAnimator valueAnimator = ValueAnimator.ofFloat(0f, 1f);
                 valueAnimator.setDuration(activity.getResources()
                         .getInteger(android.R.integer.config_shortAnimTime));
                 valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    float scaleYStart = zoomableView.getScaleY();
-                    float scaleXStart = zoomableView.getScaleX();
-                    int leftMarginStart = zoomableViewFrameLP.leftMargin;
-                    int topMarginStart = zoomableViewFrameLP.topMargin;
-                    float alphaStart = darkView.getAlpha();
-
-                    float scaleYEnd = 1f;
-                    float scaleXEnd = 1f;
-                    int leftMarginEnd = originalXY[0];
-                    int topMarginEnd = originalXY[1];
-                    float alphaEnd = 0f;
 
                     @Override
                     public void onAnimationUpdate(ValueAnimator valueAnimator) {
                         float animatedFraction = valueAnimator.getAnimatedFraction();
-                        if (animatedFraction < 1) {
-                            if (zoomableView != null) {
-                                zoomableView.setScaleX(((scaleXEnd - scaleXStart) *
-                                        animatedFraction) + scaleXStart);
-                                zoomableView.setScaleY(((scaleYEnd - scaleYStart) *
-                                        animatedFraction) + scaleYStart);
-
-                                updateZoomableViewMargins(
-                                        ((leftMarginEnd - leftMarginStart) *
-                                                animatedFraction) + leftMarginStart,
-                                        ((topMarginEnd - topMarginStart) *
-                                                animatedFraction) + topMarginStart);
-                            }
-
-                            if (darkView != null) {
-                                darkView.setAlpha(((alphaEnd - alphaStart) * animatedFraction) +
-                                        alphaStart);
-                            }
-                        } else {
-                            dismissDialogAndViews();
+                        if (zoomableView != null) {
+                            updateZoomableView(animatedFraction, scaleYStart, scaleXStart,
+                                    leftMarginStart, topMarginStart,
+                                    scaleXEnd, scaleYEnd, leftMarginEnd, topMarginEnd);
                         }
+
+                        if (darkView != null) {
+                            darkView.setAlpha(((alphaEnd - alphaStart) * animatedFraction) +
+                                    alphaStart);
+                        }
+                    }
+                });
+                valueAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        super.onAnimationCancel(animation);
+                        end();
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        end();
+                    }
+
+                    void end() {
+                        if (zoomableView != null) {
+                            updateZoomableView(1f, scaleYStart, scaleXStart,
+                                    leftMarginStart, topMarginStart,
+                                    scaleXEnd, scaleYEnd, leftMarginEnd, topMarginEnd);
+                        }
+                        dismissDialogAndViews();
+
+                        valueAnimator.removeAllListeners();
+                        valueAnimator.removeAllUpdateListeners();
                     }
                 });
                 valueAnimator.start();
@@ -239,6 +257,22 @@ public class ImageZoomHelper {
         }
 
         return false;
+    }
+
+    private void updateZoomableView(float animatedFraction, float scaleYStart,
+                                    float scaleXStart, int leftMarginStart,
+                                    int topMarginStart, float scaleXEnd, float scaleYEnd,
+                                    int leftMarginEnd, int topMarginEnd) {
+        zoomableView.setScaleX(((scaleXEnd - scaleXStart) *
+                animatedFraction) + scaleXStart);
+        zoomableView.setScaleY(((scaleYEnd - scaleYStart) *
+                animatedFraction) + scaleYStart);
+
+        updateZoomableViewMargins(
+                ((leftMarginEnd - leftMarginStart) *
+                        animatedFraction) + leftMarginStart,
+                ((topMarginEnd - topMarginStart) *
+                        animatedFraction) + topMarginStart);
     }
 
     void updateZoomableViewMargins(float left, float top) {
