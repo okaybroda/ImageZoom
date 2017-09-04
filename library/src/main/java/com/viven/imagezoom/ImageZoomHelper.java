@@ -6,6 +6,7 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -100,10 +101,13 @@ public class ImageZoomHelper {
                     // setting placeholderView's background to zoomableView's drawingCache
                     // this avoids flickering when adding/removing views
                     zoomableView.setDrawingCacheEnabled(true);
-
+                    Bitmap bitmap = Bitmap.createBitmap(zoomableView.getLayoutParams().width, zoomableView.getLayoutParams().height, Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(bitmap);
+                    zoomableView.layout(0, 0, zoomableView.getLayoutParams().width, zoomableView.getLayoutParams().height);
+                    zoomableView.draw(canvas);
                     BitmapDrawable placeholderDrawable = new BitmapDrawable(
                             activity.getResources(),
-                            Bitmap.createBitmap(zoomableView.getDrawingCache()));
+                            Bitmap.createBitmap(bitmap));
                     if (Build.VERSION.SDK_INT >= 16) {
                         placeholderView.setBackground(placeholderDrawable);
                     } else {
@@ -293,9 +297,14 @@ public class ImageZoomHelper {
             zoomableView.setVisibility(View.VISIBLE);
             zoomableView.setDrawingCacheEnabled(true);
 
+            Bitmap bitmap = Bitmap.createBitmap(zoomableView.getLayoutParams().width, zoomableView.getLayoutParams().height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            zoomableView.layout(0, 0, zoomableView.getLayoutParams().width, zoomableView.getLayoutParams().height);
+            zoomableView.draw(canvas);
+
             BitmapDrawable placeholderDrawable = new BitmapDrawable(
                     zoomableView.getResources(),
-                    Bitmap.createBitmap(zoomableView.getDrawingCache()));
+                    Bitmap.createBitmap(bitmap));
             if (Build.VERSION.SDK_INT >= 16) {
                 placeholderView.setBackground(placeholderDrawable);
             } else {
