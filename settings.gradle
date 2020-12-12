@@ -1,1 +1,2 @@
+include ':app2'
 include ':app', ':library'
