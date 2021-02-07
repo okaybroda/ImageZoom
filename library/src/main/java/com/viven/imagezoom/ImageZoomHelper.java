@@ -28,6 +28,7 @@ import java.util.List;
  */
 
 public class ImageZoomHelper {
+
     private View zoomableView = null;
     private ViewGroup parentOfZoomableView;
     private ViewGroup.LayoutParams zoomableViewLP;
@@ -46,6 +47,12 @@ public class ImageZoomHelper {
 
     private List<OnZoomListener> zoomListeners = new ArrayList<>();
 
+    public enum ZOOM_CONTROL {
+        BOTH, ZOOM_IN, ZOOM_OUT
+    }
+
+    private ZOOM_CONTROL zoomControl = ZOOM_CONTROL.BOTH;
+
     public ImageZoomHelper(Activity activity) {
         this.activityWeakReference = new WeakReference<>(activity);
     }
@@ -57,7 +64,8 @@ public class ImageZoomHelper {
 
         if (ev.getPointerCount() == 2) {
             if (zoomableView == null) {
-                View view = findZoomableView(ev, activity.findViewById(android.R.id.content));
+                View view = findZoomableView(ev,
+                        activity.findViewById(android.R.id.content));
                 if (view != null) {
                     zoomableView = view;
 
@@ -151,14 +159,14 @@ public class ImageZoomHelper {
 
                     // storing center point of the two pointers to move the view according to the
                     // touch position
-                    twoPointCenter = new int[]{
+                    twoPointCenter = new int[] {
                             (int) ((pointerCoords2.x + pointerCoords1.x) / 2),
                             (int) ((pointerCoords2.y + pointerCoords1.y) / 2)
                     };
 
                     //storing pivot point for zooming image from its touch coordinates
-                    pivotX = (int) ev.getRawX() - originalXY[0];
-                    pivotY = (int) ev.getRawY() - originalXY[1];
+                    pivotX = (int)ev.getRawX() - originalXY[0];
+                    pivotY = (int)ev.getRawY() - originalXY[1];
 
                     sendZoomEventToListeners(zoomableView, true);
                     return true;
@@ -170,7 +178,7 @@ public class ImageZoomHelper {
                 MotionEvent.PointerCoords pointerCoords2 = new MotionEvent.PointerCoords();
                 ev.getPointerCoords(1, pointerCoords2);
 
-                int[] newCenter = new int[]{
+                int[] newCenter = new int[] {
                         (int) ((pointerCoords2.x + pointerCoords1.x) / 2),
                         (int) ((pointerCoords2.y + pointerCoords1.y) / 2)
                 };
@@ -182,8 +190,24 @@ public class ImageZoomHelper {
                 zoomableView.setPivotX(pivotX);
                 zoomableView.setPivotY(pivotY);
 
-                zoomableView.setScaleX((float) (1 + pctIncrease));
-                zoomableView.setScaleY((float) (1 + pctIncrease));
+                switch (zoomControl) {
+                    case BOTH:
+                        zoomableView.setScaleX((float) (1 + pctIncrease));
+                        zoomableView.setScaleY((float) (1 + pctIncrease));
+                        break;
+                    case ZOOM_IN:
+                        if(pctIncrease > 0){
+                            zoomableView.setScaleX((float) (1 + pctIncrease));
+                            zoomableView.setScaleY((float) (1 + pctIncrease));
+                        }
+                        break;
+                    case ZOOM_OUT:
+                        if(pctIncrease < 0){
+                            zoomableView.setScaleX((float) (1 + pctIncrease));
+                            zoomableView.setScaleY((float) (1 + pctIncrease));
+                        }
+                        break;
+                }
 
                 updateZoomableViewMargins(newCenter[0] - twoPointCenter[0] + originalXY[0],
                         newCenter[1] - twoPointCenter[1] + originalXY[1]);
@@ -209,7 +233,8 @@ public class ImageZoomHelper {
                 final float alphaEnd = 0f;
 
                 final ValueAnimator valueAnimator = ValueAnimator.ofFloat(0f, 1f);
-                valueAnimator.setDuration(activity.getResources().getInteger(android.R.integer.config_shortAnimTime));
+                valueAnimator.setDuration(activity.getResources()
+                        .getInteger(android.R.integer.config_shortAnimTime));
                 valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
                     @Override
@@ -308,10 +333,11 @@ public class ImageZoomHelper {
             parent.removeView(zoomableView);
             this.parentOfZoomableView.addView(zoomableView, viewIndex, zoomableViewLP);
             this.parentOfZoomableView.removeView(placeholderView);
+
             final View finalZoomView = zoomableView;
             zoomableView.setDrawingCacheEnabled(false);
-            dismissDialog();
-            finalZoomView.invalidate();
+            dialog.dismiss();
+            resetOriginalViewAfterZoom();
         } else {
             dismissDialog();
         }
@@ -371,7 +397,7 @@ public class ImageZoomHelper {
      * of two pointers
      *
      * @param event MotionEvent that contains two pointers
-     * @param view  View to find in
+     * @param view View to find in
      * @return zoomable View
      */
     private View findZoomableView(MotionEvent event, View view) {
@@ -423,11 +449,10 @@ public class ImageZoomHelper {
     /**
      * Enable or disable zoom for view and it's children
      *
-     * @param view
-     * @param enabled
+     * @param zoom
      */
-    public static void setZoom(View view, boolean enabled) {
-        view.setTag(R.id.unzoomable, enabled ? null : new Object());
+    public void setZoomControl(ZOOM_CONTROL zoom){
+        this.zoomControl = zoom;
     }
 
     public interface OnZoomListener {
